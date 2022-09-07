@@ -2,6 +2,9 @@
 # Nicolo Savioli, PhD -  Imperial College London, 15/01/2020    #
 #################################################################
 
+#Edit: If there is a parsing error when running the code check to see 
+#if the csv separator is correct (i.e tab or comma ect.) --Deva
+
 import os 
 from   shutil import copyfile
 import shutil
@@ -33,7 +36,7 @@ def plots(list_data,list_data_dt,pathSave,type_data,strain_data):
 
 def CorrelationPlot(csv_path):
     import seaborn as sns
-    df = pd.read_csv(csv_path, sep=',', header=0) 
+    df = pd.read_csv(csv_path, sep='\t', header=0) 
     sns.set(style="white", color_codes=True)
     sns.jointplot(x=df["Age"], y=df["Longitudinal strain"], kind='kde', color="skyblue")
     plt.show()
@@ -130,7 +133,10 @@ def get_global_strain(path_file,type_data,EID_number,look_ahead):
 
 def get_data(strain_path,csv_path,save_path,\
              path_f_out,generate_plots,look_ahead):
-    df    = pd.read_csv(csv_path, sep=',', header=0) 
+    
+       
+    df    = pd.read_csv(csv_path, sep='\t', header=0) 
+    #print("TEST--------------"+df.to_string())
     raw_data = {}
     eid_list = []
     age_list = []
@@ -142,7 +148,8 @@ def get_data(strain_path,csv_path,save_path,\
             age_np   = df["Age"][match].to_numpy()
             if True not in match or len(age_np) ==[]:
                 continue 
-            #print("\n ... EID number: " + str(folder))
+            print("\n ... EID number: " + str(folder))
+            #print("TEST------------------"+os.path.join(save_path,str(folder)))
             makeFolder(os.path.join(save_path,str(folder)))
             age      = age_np[0]
             longit   = os.path.join(strain_path,folder,"cine_2d_strain_la_4ch_longit.csv")
@@ -189,14 +196,14 @@ def get_data(strain_path,csv_path,save_path,\
             continue
 
 def PostProcessingData(csv_path_strain):
-    df         = pd.read_csv(csv_path_strain, sep=',', header=0) 
+    df         = pd.read_csv(csv_path_strain, sep='\t', header=0) 
     max_strain = np.max(df["Radial strain"].to_numpy())
     match      = df["Radial strain"].astype(str).str.contains(str(max_strain))
     p_name     = df["eid"][match].to_numpy()[0]
 
 def plot_from_folder(data_path,data_path_strain):
     #path           = os.path.join(data_path,"derived_global_strain_radial.csv")
-    df_no          = pd.read_csv(data_path_strain, sep=',', header=0) 
+    df_no          = pd.read_csv(data_path_strain, sep='\t', header=0) 
     #df             = pd.read_csv(path, sep=',', header=0) 
     #list_data_dt   = df.to_numpy()
     data           = df_no.columns.to_numpy()
@@ -219,16 +226,18 @@ def plot_from_folder(data_path,data_path_strain):
     plt.legend     (by_label.values(), by_label.keys())
     fig.savefig    ("strain.jpg")
 
+
+#Note: I'm changing the paths here as the original paths no longer exists 
 if __name__ == "__main__":
     print("\n ~~ StrainPeak UKBB 0.1 ~~ \n")
-    # 1) Input data folder
-    path_strain    = "/mnt/storage/home/nsavioli/cardiac/UKBB_40616/13k_UKBB_NIFTI"
-    # 2) Phenotype data csv - you must to have it
-    path_ages      = "/mnt/storage/home/nsavioli/cardiac/UKBB_New_Data/phenotype_ukbb_13k.csv"
-    # 3) Output folder where you will save the plots 
-    path_save      = "/mnt/storage/home/nsavioli/cardiac/UKBB_New_Data/strain/plots"
-    # 4) Output folder where you final csv will be save - usually where you have your plot folders 
-    path_f_out     = "/mnt/storage/home/nsavioli/cardiac/UKBB_New_Data/strain"
+    # 1) Input data folder    
+    path_strain    = "/home/dsenevir@isd.csc.mrc.ac.uk/Desktop/cardiac/UKBB_40616/strain_39k"    
+    # 2) Phenotype data csv - you must to have it. C(or create it using the csv_creator.R) -Deva
+    path_ages      = "/home/dsenevir@isd.csc.mrc.ac.uk/Desktop/dsenevir/Nicolo/UKBB_New_Data/phenotype_ukbb_1800.csv"
+    # 3) Output folder where you will save the plots. Edit: (create it if it does not exist) -Deva
+    path_save      = "/home/dsenevir@isd.csc.mrc.ac.uk/Desktop/dsenevir/Nicolo/UKBB_New_Data/strain/plots"
+    # 4) Output folder where you final csv will be save - usually where you have your plot folders (create it if it does not exist)
+    path_f_out     = "/home/dsenevir@isd.csc.mrc.ac.uk/Desktop/dsenevir/Nicolo/UKBB_New_Data/strain"
     # 5) True/False if you want to generate the plots for checking. 
     generate_plots = True 
     # 6) Distance to look ahead from a peak candidate to determine if it is the actual peak - default 5 or 10 ( you must to try the optimal)
